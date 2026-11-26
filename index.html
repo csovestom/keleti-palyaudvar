@@ -712,9 +712,43 @@ body.paged:not([data-page=more]) #btnSims{display:none}
 <meta name="description" content="Budapest-Keleti pályaudvar forgalmi szimulátor">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style id="bzCss">
+#btnMenu{position:absolute;top:7px;left:8px;z-index:3;display:flex;align-items:center;gap:7px;min-height:34px;padding:6px 11px 6px 9px;font:700 12px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase}
+#btnMenu svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+#btnMenu[aria-expanded=true]{color:var(--accent-ink);background:var(--grain),linear-gradient(#f3cf7c,#d39b36);border-color:#6d4f15}
+#top{padding-left:118px}
+@media(max-width:1250px){#top{padding-left:112px}}
+body.paged #top{padding-left:8px}
+body.paged #btnMenu{position:static;flex:1 1 0;justify-content:center;min-width:0;min-height:0;padding:3px 1px;color:#ffd98a}
+body.paged #btnMenu span{display:none}
+body.paged #btnMenu svg{width:21px;height:21px;stroke-width:2}
+#bzMenu .box{width:min(100%,700px);resize:none}
+#bzMenu h2{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+#bzMenu h2 small{font:600 11px/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--title-ink)}
+.bz-top{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.bz-top button{min-height:36px;padding:8px 14px;font-size:13px}
+.bz-block{margin:0 0 14px;padding:14px 16px 12px;border:1px solid var(--rule);background:var(--card);box-shadow:inset 0 0 0 3px var(--card),inset 0 0 0 4px color-mix(in srgb,var(--rule) 38%,transparent)}
+.bz-block h3{margin:0 0 4px;font:700 18px/1.25 var(--serif);color:var(--ink)}
+.bz-block>p{margin:0 0 10px;font-size:13px;line-height:1.45}
+.bz-list{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:5px}
+.bz-list li{margin:0}
+.bz-list button{width:100%;display:flex;align-items:center;gap:10px;min-height:40px;padding:6px 10px;text-align:left;white-space:normal}
+.bz-list .bz-no{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;font:700 12px/1 var(--mono);color:var(--accent-ink);background:linear-gradient(#f3cf7c,#d39b36);border:1px solid #6d4f15}
+.bz-list .bz-t{flex:1;display:flex;flex-direction:column;gap:3px}
+.bz-list .bz-t small{font-weight:500;font-size:11px;opacity:.75;letter-spacing:0}
+.bz-list .bz-ok{flex:none;font:700 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:3px 6px;border:1px solid currentColor;border-radius:2px;opacity:.8}
+.bz-list li.bz-bonus button{border-style:dashed}
+.bz-list li.bz-bonus .bz-no{background:linear-gradient(#c9e2c4,#7fae78);border-color:#2f5a2a}
+.bz-go{display:flex;justify-content:flex-end;gap:8px}
+.bz-go button{min-height:36px;padding:8px 16px;font-size:13px}
+.bz-more{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:4px}
+.bz-note{margin:6px 0 0;font-size:11.5px;opacity:.75}
+body.bz-course .tu-head span{letter-spacing:.06em}
+</style>
 </head>
 <body data-page="">
 <header id="top">
+  <button type="button" id="btnMenu" aria-haspopup="dialog" aria-controls="bzMenu" aria-expanded="false" title="Főmenü: a szimuláció megáll (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h16M4 12h16M4 17.5h16"></path></svg><span>Főmenü</span></button>
   <div class="top-identity">
   <div class="brand">
     <span class="route-mark logo-mark"><svg class="logo-svg" aria-hidden="true" viewBox="0 110 560 360" xmlns="http://www.w3.org/2000/svg"><defs><mask id="mvH"><rect x="0" y="0" width="560" height="600" fill="#fff"></rect><path d="M256.6 187.3A108 108 0 1 1 256.6 392.7L265.0 367.0A81 81 0 1 0 265.0 213.0Z" fill="#000"></path><path d="M0 262H290A26.5 26.5 0 0 1 290 315H0Z" fill="#000"></path></mask></defs><g mask="url(#mvH)" fill="currentColor"><circle cx="290" cy="290" r="165"></circle><path d="M12 208H540L516 262H38Z"></path><path d="M40 315H512L488 370H64Z"></path></g></svg></span>
@@ -5894,7 +5928,8 @@ function tutorTrain() {
   Object.assign(tr, { receiveAt: now, enter: now, arr: now, dep: now, exit: now + 900 });
   if (trySpawn(tr)) tutor.train = tr.no;
 }
-const tStep = () => LESSONS[tutor.li].steps[tutor.si];
+const TC = () => tutor.course || LESSONS;
+const tStep = () => TC()[tutor.li].steps[tutor.si];
 function tutorEnter() {
   tutor.okAt = 0; armed = null; pStart = null;
   const st = tStep(); if (st.enter) st.enter();
@@ -5907,18 +5942,18 @@ function tutorLesson(i) {
     document.body.classList.add('tutoring');
   }
   restore(baseSnap); logEl.replaceChildren();
-  tutor.li = i; tutor.si = 0; tutor.finished = false; tutor.train = null; tutor.phone = !!LESSONS[i].phone;
+  tutor.li = i; tutor.si = 0; tutor.finished = false; tutor.train = null; tutor.phone = !!TC()[i].phone;
   closePhone(); closeSigView();
   if (deskTab !== 'tutor' || $('#tt').classList.contains('closed')) selectDeskTab('tutor');
   if (document.body.classList.contains('paged')) setPage('pult'); else setDeskOpen('pult', true);
-  msg(`Tanpálya: ${i + 1}. lecke – ${LESSONS[i].title}.`, 'info');
+  msg(`Tanpálya: ${i + 1}. lecke – ${TC()[i].title}.`, 'info');
   tutorEnter();
 }
 function tutorNext() {
-  if (tutor.si + 1 < LESSONS[tutor.li].steps.length) { tutor.si++; tutorEnter(); return; }
+  if (tutor.si + 1 < TC()[tutor.li].steps.length) { tutor.si++; tutorEnter(); return; }
   tutor.done.add(tutor.li);
   try { localStorage.setItem('budapest-keleti-tutor', JSON.stringify([...tutor.done])); } catch {}
-  if (tutor.li + 1 < LESSONS.length) tutorLesson(tutor.li + 1);
+  if (tutor.li + 1 < TC().length) tutorLesson(tutor.li + 1);
   else { tutor.finished = true; renderTutor(true); }
 }
 function stopTutor() {
@@ -5986,7 +6021,7 @@ function renderTutor(force) {
       <div class="tu-actions"><button type="button" class="on" data-act="exit">Vissza a szolgálatba</button><button type="button" data-lesson="0">Újra az elejéről</button></div>`;
     return;
   }
-  const L = LESSONS[tutor.li], st = tStep(), n = L.steps.length;
+  const L = TC()[tutor.li], st = tStep(), n = L.steps.length;
   body.innerHTML = `<div class="tu-head"><span>${tutor.li + 1}. lecke · ${tutor.si + 1}/${n}</span><b>${L.title}</b><button type="button" data-act="exit">Kilépés</button></div>
     <div class="tu-step${tutor.okAt ? ' ok' : ''}"><p class="tu-do">${st.do}</p><p class="tu-why"><b>Miért?</b> ${st.why}</p>
     ${tutor.okAt ? '<p class="tu-ok"><i class="tu-stamp">Rendben</i></p>' : st.wait ? '<p class="tu-wait">A vonat úton van…</p>' : ''}</div>
@@ -6710,7 +6745,8 @@ function frame(t) {
   if (armed && t - armedAt > 8000) armed = null;
   if (pStart && t - pStartAt > 8000) pStart = null;
   let simDt = real * speed;
-  if (tutor.on) { tutorSim(real); tutorTick(); }
+  if (tutor.hold) {}
+  else if (tutor.on) { tutorSim(real); tutorTick(); }
   else while (simDt > 1e-6) { const d = Math.min(0.1, simDt); simStep(d); simDt -= d; }
   syncTimebar();
   if (follow && camAuto && TRAIN[follow].state === 'run') {
@@ -7351,4 +7387,288 @@ function winClose(el) {
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 </script>
 <script>document.getElementById('btnSims').onclick=()=>window.open('https://csovestom.github.io/forgalmi-szimulatorok/','_blank','noopener');</script>
+<div class="modal" id="bzMenu" role="dialog" aria-modal="true" aria-labelledby="bzMenuTitle"><div class="box"><h2 id="bzMenuTitle">Főmenü <small>A szimuláció áll</small></h2><div id="bzMenuBody"></div></div></div>
+<script id="bzJs">
+const BZ_STATION = {
+  key: 'budapest-keleti',
+  intro: 'Négy rövid lépés a Dominó 70 pulton: a berendezés felépítése, a váltóállítás, a bejárati vágányút és jelzők, végül a kijárati vágányút.',
+  courseEnd: 'Láttad a berendezés felépítését, átállítottál egy váltót, a próbavonatot két lépésben fogadtad, megfordult, és két lépésben indítottad.',
+  bonusEnd: 'Lebonyolítottál egy keresztet a torokban: az induló és az érkező vonat vágányútja keresztezte egymást, ezért egymás után kaptak utat.',
+  lessons: H => {
+    const { pb, K } = H;
+    const a = () => H.bT('a'), b = () => H.bT('b');
+    const parked = t => () => !t() || !!t().parked;
+    const gone = t => () => !t() || t().exiting || t().state === 'done';
+    const turn = () => { if (!(a() && a().parked)) H.autoplay(2); tutorTurnTrain(); H.use('a', tutor.train); };
+    const opp = () => H.spawn('b', H.pick(t => t.from === 'FVb' && t.terminus) || H.pick(t => t.from === 'FVb' && !t.origin), { track: '6', options: ['6'], terminus: true });
+    const inA = () => !!(a() && a().actualTrack != null);
+    const outA = () => !!(a() && a().depAt != null);
+    return [
+      { title: 'A berendezés felépítése', sub: 'Pult, vágányok, jelzőgombok, közös gombok', steps: LESSONS[0].steps },
+      { title: 'Váltóállítás', sub: 'Közös áll. + váltógomb', steps: LESSONS[1].steps },
+      { title: 'Bejárati vágányút és jelzők', sub: 'Próbavonat Kőbánya felső felől a II. vágányra', steps: [
+        H.route('A-F', `Próbavonat indult Kőbánya felsőről. A bejárat két részből áll. Először a közbenső jelzőig: ${pb('A')} + ${pb('F')}.`,
+          'A kezdőgomb (A) és a célgomb (F) kijelöli az utat. A berendezés maga állítja és lezárja a váltókat, a fehér csík mutatja a lezárt vágányutat. Ez az első lezárás.',
+          { enter: tutorTrain, past: inA }),
+        H.route('F-K2', `Tovább a II. vágányra: ${pb('F')} + ${pb('K2')}.`, 'A közbenső jelzőtől a vágány ütköző felőli végén lévő K2 gombig vezet az út.', { past: inA }),
+        H.signal('F-K2', `Állítsd szabadra a közbenső jelzőt: ${pb('Jelzőáll.')} + ${pb('F')}.`, 'A jelző csak külön parancsra vált szabadra (második lezárás).', { past: inA }),
+        H.signal('A-F', `Most a bejárati jelzőt: ${pb('Jelzőáll.')} + ${pb('A')}.`, 'Az A már az F állását is előre jelzi. A kitérő irány miatt 40 km/h-t mutat.', { past: inA }),
+        H.wait('Figyeld a pultot: a piros csík maga a próbavonat. Bejár a II. vágányra, és megáll az ütközőbak előtt.',
+          'A jelzők a vonat mögött magától Megállj!-ra esnek, a vágányút szakaszonként feloldódik.', parked(a)),
+      ] },
+      { title: 'Kijárati vágányút', sub: 'A megfordult próbavonat indul Kőbánya felső felé', keep: true, steps: [
+        H.route('V5a-KFj', `A szerelvény megfordult, új vonatként indul. A kijárat is két részből áll. Először a külső rész: ${pb('V5a')} + a jobb oldali ${pb('zöld')} célgomb a Kőbánya felső jobb vágánynál.`,
+          'A csoportkijárati jelzőtől a vonalig tartó út lezárja a külső váltókat, és kifelé fordítja a menetirányt.',
+          { enter: turn, past: outA }),
+        H.signal('V5a-KFj', `Jelzőt szabadra: ${pb('Jelzőáll.')} + ${pb('V5a')}.`, 'A zöld fény azt jelenti, hogy a térköz szabad.', { past: outA }),
+        H.route('V2-V5a', `Most a vágányról a csoportkijárati jelzőig: ${pb('V2')} + ${pb('V5a')}.`, 'A II. vágányról a 23-as és 24-es váltón át vezet az út.', { past: outA }),
+        H.signal('V2-V5a', `Jelzőt szabadra: ${pb('Jelzőáll.')} + ${pb('V2')}.`, 'A V2 már a V5a állását is előre jelzi. A tanpályán a menesztés magától történik.', { past: outA }),
+        H.wait('A próbavonat elindul, és elhagyja az állomást.', 'A vonat mögött a vágányút magától feloldódik. Ennyi a lényeg: bejárat két lépésben, fordulás, kijárat két lépésben.', gone(a)),
+      ] },
+      { title: 'Kereszt a torokban', sub: 'Induló és érkező vonat keresztező vágányúttal', bonus: true, steps: [
+        H.info('Fejpályaudvaron nincs egyvágányú vonal, itt a kereszt a torokban történik: az induló és az érkező vonat útja keresztezi egymást, ezért egymás után kapnak utat.',
+          'Először fogadd az „a” vonatot Kőbánya felső felől a II. vágányra. Megfordul, és visszaindul, közben Ferencváros felől közeledik a „b” vonat.', { enter: tutorTrain }),
+        H.route('A-F', `Bejárat az „a” vonatnak: ${pb('A')} + ${pb('F')}.`, 'Első rész: a bejárati jelzőtől a közbenső jelzőig.', { past: inA }),
+        H.route('F-K2', `Tovább a II. vágányra: ${pb('F')} + ${pb('K2')}.`, 'Második rész: a közbenső jelzőtől a vágányig.', { past: inA }),
+        H.signal('F-K2', `Jelzőt szabadra: ${pb('Jelzőáll.')} + ${pb('F')}.`, 'Előbb a belső jelző.', { past: inA }),
+        H.signal('A-F', `Jelzőt szabadra: ${pb('Jelzőáll.')} + ${pb('A')}.`, 'Aztán a bejárati jelző.', { past: inA }),
+        H.wait('Az „a” vonat bejár a II. vágányra, és megáll az ütközőbak előtt.', 'A szerelvény megfordul, és új vonatként indul vissza.', parked(a)),
+        H.route('V5a-KFj', `Ferencváros felől elindult a „b” vonat. Az „a” induljon előbb: ${pb('V5a')} + a jobb oldali ${pb('zöld')} célgomb a Kőbánya felső jobb vágánynál.`,
+          'Az induló vonat útja a torokban keresztezi a Ferencváros felőli bejárat útját.', { enter: () => { turn(); opp(); }, past: outA }),
+        H.signal('V5a-KFj', `Jelzőt szabadra: ${pb('Jelzőáll.')} + ${pb('V5a')}.`, 'A külső rész készen áll.', { past: outA }),
+        H.route('V2-V5a', `A vágányról: ${pb('V2')} + ${pb('V5a')}.`, 'A belső rész a II. vágánytól a csoportkijárati jelzőig.', { past: outA }),
+        H.signal('V2-V5a', `Jelzőt szabadra: ${pb('Jelzőáll.')} + ${pb('V2')}.`, 'Az „a” vonat elindul.', { past: outA }),
+        H.info(`Próbáld meg most a „b” vonat bejáratát: ${pb('B')} + ${pb('G')}.`,
+          'A berendezés nem engedi: a két vágányút keresztezi egymást, a váltók az induló vonat útjára vannak lezárva. A „b” vonat a B jelzőnél vár. Ez a kereszt lényege.', { hl: ['pSig:B', 'pSig:G'] }),
+        H.wait('Várd meg, amíg az „a” vonat kihalad a torokból.', 'A vonat mögött a vágányút szakaszonként feloldódik, a keresztező váltók felszabadulnak.', () => gone(a)() || (!activeFrom.V5a && !activeFrom.V2)),
+        H.route('B-G', `Most fogadd a „b” vonatot: ${pb('B')} + ${pb('G')}.`, 'A keresztező út már szabad.', { past: () => !!(b() && b().actualTrack != null) }),
+        H.route('G-K6', `Tovább a VI. vágányra: ${pb('G')} + ${pb('K6')}.`, 'A cél a vágány ütköző felőli végén lévő K6 gomb.', { past: () => !!(b() && b().actualTrack != null) }),
+        H.signal('G-K6', `Jelzőt szabadra: ${pb('Jelzőáll.')} + ${pb('G')}.`, 'Előbb a belső jelző.', { past: () => !!(b() && b().actualTrack != null) }),
+        H.signal('B-G', `Jelzőt szabadra: ${pb('Jelzőáll.')} + ${pb('B')}.`, 'A „b” vonat elindul a B jelzőtől.', { past: () => !!(b() && b().actualTrack != null) }),
+        H.wait('A „b” vonat bejár a VI. vágányra, és megáll az ütközőbak előtt.', 'Élesben a Segítő mindig jelzi, melyik vágányút keresztezi a másikat, és melyik vonat jön előbb.', parked(b)),
+      ] },
+    ];
+  },
+};
+(() => {
+const ST = BZ_STATION;
+const VESMODE = typeof vesNextKey === 'function' && typeof VES === 'object';
+const bz = { open: false, speed: null, trains: {}, done: new Set(), mainDone: tutor.done, list: null, fromMenu: false };
+try { for (const i of JSON.parse(localStorage.getItem(ST.key + '-biztber') || '[]')) bz.done.add(i); } catch {}
+const bT = s => { const n = s === 'a' ? bz.trains.a || tutor.train : bz.trains[s]; return n ? TRAIN[n] : null; };
+const defOf = id => ROUTE[id];
+const sigFree = id => ASP[id] && ASP[id] !== 'VOROS';
+const routeOn = id => { const d = defOf(id); return !!(activeFrom[d.start] && activeFrom[d.start].def.id === id); };
+const routeUsed = id => { const d = defOf(id); const r = activeFrom[d.start]; return !!(r && r.def.id === id && r.train); };
+
+function spawn(slot, tr, extra) {
+  if (!tr) return null;
+  Object.assign(tr, { crossing: null, receiveAt: now, enter: now, arr: now, dep: now, exit: now + 1500, departurePermission: null, permAfter: null, dispatchAt: null, late: null }, extra || {});
+  if (!trySpawn(tr)) return null;
+  bz.trains[slot] = tr.no;
+  if (slot === 'a') tutor.train = tr.no;
+  return tr;
+}
+function pick(match, set) {
+  const tr = trains.find(t => t.state === 'pending' && match(t)) || null;
+  if (tr && set) Object.assign(tr, set);
+  return tr;
+}
+function press(keys) {
+  armed = null; pStart = null;
+  for (const k of keys) { const [type, id] = k.split(':'); pultClick({ type, id }); }
+}
+function autoplay(li) {
+  const course = tutor.course, L = course[li], save = [tutor.li, tutor.si];
+  tutor.li = li;
+  for (let si = 0; si < L.steps.length; si++) {
+    tutor.si = si;
+    const st = L.steps[si];
+    if (st.enter) st.enter();
+    if (!st.done) continue;
+    for (let n = 0; n < 4000 && !st.done(); n++) {
+      const keys = typeof st.keys === 'function' ? st.keys() : st.keys;
+      if (keys && keys.length && !st.wait && n % 8 === 0) press(keys);
+      tutorSim(1);
+    }
+  }
+  [tutor.li, tutor.si] = save;
+  armed = null; pStart = null;
+  logEl.replaceChildren();
+}
+
+const H = {
+  pb, K, spawn, pick, bT, autoplay, sigFree, routeOn, routeUsed, VESMODE,
+  route(id, text, why, extra) {
+    const d = defOf(id);
+    if (VESMODE) {
+      const g = () => VES[vesGroupOf(d)], k = vesTrackOf(d);
+      return Object.assign({ do: text, why, keys: () => [vesNextKey(d)], done: () => g().green === k || routeUsed(id) || (extra && extra.past && extra.past()) }, extra);
+    }
+    const keys = ['pSig:' + d.start, d.line ? 'pTarget:c' + d.line : 'pSig:' + d.end];
+    return Object.assign({ do: text, why, keys, done: () => routeOn(id) || (extra && extra.past && extra.past()) }, extra);
+  },
+  signal(id, text, why, extra) {
+    const d = defOf(id);
+    if (VESMODE) {
+      return Object.assign({ do: text, why, keys: () => [vesNextKey(d)], done: () => sigFree(d.start) || routeUsed(id) || (extra && extra.past && extra.past()) }, extra);
+    }
+    return Object.assign({ do: text, why, keys: [K.JA, 'pSig:' + d.start], done: () => sigFree(d.start) || routeUsed(id) || (extra && extra.past && extra.past()) }, extra);
+  },
+  half(id, text, why, extra) {
+    const d = defOf(id), g = () => VES[vesGroupOf(d)];
+    return Object.assign({ do: text, why, keys: () => [vesNextKey(d)], done: () => /45$/.test(g().red || '') || sigFree(d.start) || routeUsed(id) }, extra);
+  },
+  reset(id, text, why, extra) {
+    const d = defOf(id), g = () => VES[vesGroupOf(d)];
+    const keys = () => { const x = g(); return x.red ? ['vRed:' + x.id + '.' + (x.red.startsWith('BE') ? 'KI' : 'BE')] : x.green ? ['vGr:' + x.id + '.' + x.green] : []; };
+    return Object.assign({ do: text, why, keys, done: () => !g().green && !g().red }, extra);
+  },
+  use(slot, no) { bz.trains[slot] = no; },
+  wait(text, why, done, extra) { return Object.assign({ do: text, why, wait: true, rate: 4, done }, extra); },
+  info(text, why, extra) { return Object.assign({ do: text, why }, extra); },
+};
+const COURSE = ST.lessons(H);
+const MAIN = COURSE.filter(l => !l.bonus).length;
+
+function setCourse(on) {
+  if (on) { tutor.course = COURSE; tutor.done = bz.done; document.body.classList.add('bz-course'); }
+  else { tutor.course = null; tutor.done = bz.mainDone; document.body.classList.remove('bz-course'); }
+}
+function startCourse(i) {
+  bz.fromMenu = true;
+  closeMenu(true);
+  if (tutor.on && !tutor.course) stopTutor();
+  setCourse(true);
+  tutorLesson(i);
+}
+
+const baseLesson = tutorLesson;
+tutorLesson = function (i) {
+  if (!tutor.course) return baseLesson(i);
+  const L = tutor.course[i];
+  bz.trains = {};
+  if (L.keep && tutor.on && tutor.chain && tutor.li === i - 1) {
+    bz.trains.a = tutor.train;
+    tutor.li = i; tutor.si = 0; tutor.finished = false;
+    msg(`Biztber bemutató: ${i + 1}. – ${L.title}.`, 'info');
+    tutorEnter();
+    return;
+  }
+  baseLesson(i);
+};
+const baseNext = tutorNext;
+tutorNext = function () {
+  if (!tutor.course) return baseNext();
+  const L = tutor.course[tutor.li];
+  if (tutor.si + 1 < L.steps.length) { tutor.si++; tutorEnter(); return; }
+  bz.done.add(tutor.li);
+  try { localStorage.setItem(ST.key + '-biztber', JSON.stringify([...bz.done])); } catch {}
+  if (tutor.li + 1 < MAIN) { tutor.chain = true; tutorLesson(tutor.li + 1); tutor.chain = false; }
+  else { tutor.finished = true; renderTutor(true); }
+};
+const baseStop = stopTutor;
+stopTutor = function () {
+  const was = !!tutor.course;
+  baseStop();
+  if (was) { setCourse(false); bz.trains = {}; renderTutor(true); if (bz.fromMenu) openMenu(); }
+};
+const baseRender = renderTutor;
+renderTutor = function (force) {
+  if (!tutor.course || !tutor.on) return baseRender(force);
+  const key = ['bz', tutor.li, tutor.si, !!tutor.okAt, tutor.finished].join('|');
+  if (!force && key === tutor.key) return;
+  if (!tutor.finished) {
+    baseRender(true);
+    tutor.key = key;
+    const L = tutor.course[tutor.li], span = $('#tutorBody .tu-head span');
+    if (span) span.textContent = (L.bonus ? 'Bónusz' : `Biztber ${tutor.li + 1}/${MAIN}`) + ` · ${tutor.si + 1}/${L.steps.length}`;
+    return;
+  }
+  tutor.key = key;
+  const bonusDone = tutor.course[tutor.li].bonus;
+  const bi = COURSE.findIndex(l => l.bonus);
+  $('#tutorBody').innerHTML = `<div class="tu-head"><span>Biztber bemutató</span><b>${bonusDone ? 'A kereszt is megvan!' : 'Kész vagy a négy lépéssel'}</b></div>
+    <div class="tu-step"><p class="tu-do">${bonusDone ? ST.bonusEnd : ST.courseEnd}</p>
+    <p class="tu-why">${bonusDone ? 'Élesben ugyanígy dolgozol, csak előtte telefonon kéred és adod az engedélyeket. A Segítő mindig megmutatja a következő lépést.' : 'A bónusz feladatban két szembe haladó vonatot kezelsz egyszerre: ez a kereszt.'}</p></div>
+    <div class="tu-actions">${!bonusDone && bi >= 0 ? `<button type="button" class="on" data-bz="${bi}">Bónusz: ${COURSE[bi].title.toLowerCase()}</button>` : ''}<button type="button" data-act="exit">Vissza a főmenübe</button><button type="button" data-bz="0">Újra az elejéről</button></div>`;
+};
+$('#tutorBody').addEventListener('click', e => {
+  const b = e.target.closest('button[data-bz]');
+  if (b) { e.stopPropagation(); setCourse(true); tutorLesson(+b.dataset.bz); }
+}, true);
+
+const menu = $('#bzMenu'), btn = $('#btnMenu');
+function renderMenu() {
+  const items = COURSE.map((l, i) => `<li class="${l.bonus ? 'bz-bonus' : ''}"><button type="button" data-bzl="${i}"><span class="bz-no">${l.bonus ? '★' : i + 1}</span><span class="bz-t"><b>${l.bonus ? 'Bónusz: ' : ''}${l.title}</b><small>${l.sub}</small></span>${bz.done.has(i) ? '<i class="bz-ok">Kész</i>' : ''}</button></li>`).join('');
+  $('#bzMenuBody').innerHTML = `
+    <div class="bz-top">
+      <button type="button" class="on" data-bzm="resume">${tutor.on ? 'Vissza a tanpályára' : 'Folytatás'}</button>
+      ${tutor.on ? '<button type="button" data-bzm="leave">Kilépés a tanpályáról</button>' : ''}
+    </div>
+    <section class="bz-block" aria-labelledby="bzBlockTitle">
+      <h3 id="bzBlockTitle">Mutasd meg nekem a biztber működését</h3>
+      <p>${ST.intro} Külön tanpályán, menetrend nélkül, telefonálás és engedélykérés nélkül, próbavonattal. A szolgálatod közben megáll, és kilépéskor ott folytatódik, ahol abbahagytad.</p>
+      <ol class="bz-list">${items}</ol>
+      <div class="bz-go"><button type="button" class="on" data-bzl="0">Indítás az elejéről</button></div>
+    </section>
+    <div class="bz-more">
+      <button type="button" data-bzm="tutor">Teljes oktató (minden lecke)</button>
+      <button type="button" data-bzm="help">Útmutató</button>
+      <button type="button" data-bzm="sims">Összes forgalmi szimulátor</button>
+    </div>`;
+}
+function openMenu() {
+  if (bz.open) return;
+  bz.open = true; tutor.hold = true;
+  if (!tutor.on) { bz.speed = speed; setSpeed(0); }
+  renderMenu();
+  btn.setAttribute('aria-expanded', 'true');
+  winOpen(menu);
+  setTimeout(() => { const f = menu.querySelector('button.on'); if (f) f.focus(); }, 30);
+}
+function closeMenu(silent) {
+  if (!bz.open) return;
+  bz.open = false; tutor.hold = false;
+  if (bz.speed != null) setSpeed(bz.speed || 1);
+  bz.speed = null;
+  btn.setAttribute('aria-expanded', 'false');
+  winClose(menu);
+  if (!silent) btn.focus();
+}
+btn.addEventListener('click', () => bz.open ? closeMenu() : openMenu());
+const placeBtn = () => { const home = isPaged() ? $('#pager') : $('#top'); if (btn.parentNode !== home) home.prepend(btn); };
+pagedMQ.addEventListener('change', placeBtn);
+placeBtn();
+menu.addEventListener('click', e => {
+  if (e.target === menu) return closeMenu();
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.bzl != null) return startCourse(+b.dataset.bzl);
+  const a = b.dataset.bzm;
+  if (a === 'resume') closeMenu();
+  else if (a === 'leave') { bz.fromMenu = false; closeMenu(true); stopTutor(); }
+  else if (a === 'tutor') { closeMenu(); if (tutor.course) stopTutor(); if (isPaged()) setPage('tutor'); else selectDeskTab('tutor'); }
+  else if (a === 'help') { closeMenu(); $('#btnHelp').click(); }
+  else if (a === 'sims') { const s = $('#btnSims'); if (s) s.click(); }
+});
+let escWasIdle = false;
+window.addEventListener('keydown', e => {
+  if (bz.open) {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeMenu(); return; }
+    if (e.key === 'Tab') {
+      const bs = menu.querySelectorAll('button');
+      if (e.shiftKey && document.activeElement === bs[0]) { e.preventDefault(); bs[bs.length - 1].focus(); }
+      else if (!e.shiftKey && document.activeElement === bs[bs.length - 1]) { e.preventDefault(); bs[0].focus(); }
+      return;
+    }
+    if (!e.target.closest('input')) e.stopImmediatePropagation();
+    return;
+  }
+  escWasIdle = e.key === 'Escape' && !selStart && !armed && !pStart && !sigViewId && !swViewId &&
+    !document.querySelector('.modal.open') && (typeof phonePanel === 'undefined' || phonePanel.hidden) && (typeof srPanel === 'undefined' || srPanel.hidden);
+}, true);
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && escWasIdle && !bz.open) { escWasIdle = false; openMenu(); } });
+window.bzMenu = { open: openMenu, close: closeMenu, start: startCourse, autoplay, course: COURSE, state: bz };
+})();
+</script>
 </body></html>
