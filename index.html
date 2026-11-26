@@ -6617,7 +6617,7 @@ function resize() {
   if (pOpen) {
     const w = pw.getBoundingClientRect().width;
     const h = Math.max(0, (isPaged() ? pw : bottom).getBoundingClientRect().height - pw.querySelector('.desk-head').offsetHeight);
-    pcam.w = w; pcam.h = h; pcam.z = Math.min(w / 2150, h / 720);
+    pcam.w = w; pcam.h = h; pcam.z = Math.min(w / 2050, h / 1090);
     if (isPaged()) pcam.z = Math.max(pcam.z, Math.min(0.5, h / 740));
     pc.style.height = h + 'px'; pc.width = Math.round(w * dpr); pc.height = Math.round(h * dpr);
     pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -6710,12 +6710,12 @@ function frame(t) {
   if (!$('#pultWrap').classList.contains('closed')) {
     if (tutor.on && isPaged() && guideHL.pult.size === 1) {
       const [type, id] = [...guideHL.pult][0].split(':');
-      const p = type === 'pCommon' ? [COMMON[id].x, COMMON[id].y] : type === 'pSw' ? SWBTN[id] : type === 'pTarget' ? TARGETS[id] : type === 'pSig' ? P[SIGS[id].node] : [1075, 620];
+      const p = type === 'pCommon' ? [COMMON[id].x, COMMON[id].y] : type === 'pSw' ? SWBTN[id] : type === 'pTarget' ? TARGETS[id] : type === 'pSig' ? P[SIGS[id].node] : [1074, 754];
       const [sx] = W2S(pcam, ...p);
       if (sx < 36 || sx > pcam.w - 36) pcam.x += (p[0] - pcam.x) * 0.12;
     }
-    const mx = Math.max(0, 1075 - pcam.w / 2 / pcam.z), my = Math.max(0, 370 - pcam.h / 2 / pcam.z);
-    pcam.x = clamp(pcam.x, 1075 - mx, 1075 + mx); pcam.y = clamp(pcam.y, 620 - my, 620 + my);
+    const mx = Math.max(0, 1025 - pcam.w / 2 / pcam.z), my = Math.max(0, 545 - pcam.h / 2 / pcam.z);
+    pcam.x = clamp(pcam.x, 1074 - mx, 1074 + mx); pcam.y = clamp(pcam.y, 754 - my, 754 + my);
     drawPult(pctx, pcam); pultGlow = 1;
   }
   drawSigView();
