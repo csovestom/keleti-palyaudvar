@@ -1,4 +1,4 @@
-const CACHE = 'keleti-v10';
+const CACHE = 'keleti-v11';
 const FILES = [
   './',
   'index.html',
